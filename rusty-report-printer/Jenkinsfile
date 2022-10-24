@@ -1,4 +1,4 @@
-imporrusty-report-prinerLoovy.transform.Field
+import groovy.transform.Field
 
 // We need this because of the mono repo :(
 @Field String PROJECT_DIR = 'rusty-report-printer'
@@ -6,39 +6,23 @@ imporrusty-report-prinerLoovy.transform.Field
 pipeline {
     agent {
         kubernetes {
-          defaultContainer 'rust'
+            defaultContainer 'rust'
             yaml '''
-            spec:
-              containers:
-                -name:node
-                  image: node:18.2.0-alpine3.15
-                  command: ["sleep", "infinity"]
-                  resources:
-                    requests:
-                      cpu: 100m
-                      memory: 128Mi
-                    limits
-                      cpu: 1
-                      memory: 128Mi
-
-                - name: rust
-                  image: rust:1.58-alpine3.15
-                  command: ["sleep", "infinity"]
-                  resources:
-                    requests:
-                      cpu: 100m
-                      memory: 128Mi
-                    limits
-                      cpu: 1
-                      memory: 128Mi
-
+              spec:
+                containers:
+                  - name: node
+                    image: node:18.2.0-alpine3.15
+                    command: ["sleep", "infinity"]
+                  - name: rust
+                    image: rustlang/rust:nightly-alpine
+                    command: ["sleep", "infinity"]
             '''
         }
     }
 
     environment {
         CARGO_UNSTABLE_SPARSE_REGISTRY = 'true'
-      }
+    }
 
     options {
         buildDiscarder logRotator(numToKeepStr: '10')
@@ -50,19 +34,21 @@ pipeline {
         stage('Generate Report') {
             steps {
                 dir(PROJECT_DIR) {
-                    sh './report_generator.js'
+                    container('node') {
+                        sh './report_generator.js'
+                    }
                 }
             }
         }
 
-//        stage('Install dependencies') {
-//            steps {
-//                dir(PROJECT_DIR) {
-//                    // if we are on alpine, we need to install musl-dev
-//                    // sh 'apk add --no-cache musl-dev=1.2.2-r7'
-//                }
-//            }
-//        }
+       stage('Install dependencies') {
+           steps {
+               dir(PROJECT_DIR) {
+                   // if we are on alpine, we need to install musl-dev
+                   sh 'apk add --no-cache musl-dev=1.2.2-r7'
+               }
+           }
+       }
 
         stage('Build') {
             steps {
@@ -75,14 +61,14 @@ pipeline {
         // Oh no, we can't perform regular Docker Builds on Kubernetes
         /*
         stage('Build Image') {
-            environment {lajj
+            environment {
                 DOCKER_BUILDKIT = "1"
             }
             steps {
                 dir(PROJECT_DIR) {
                     sh 'docker build -t super-report-printer:v0.1.0 .'
                 }
-     rust
+            }
         }
          */
     }
