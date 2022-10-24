@@ -1,4 +1,4 @@
-import groovy.transform.Field
+imporrusty-report-prinerLoovy.transform.Field
 
 // We need this because of the mono repo :(
 @Field String PROJECT_DIR = 'rusty-report-printer'
@@ -13,9 +13,25 @@ pipeline {
                 -name:node
                   image: node:18.2.0-alpine3.15
                   command: ["sleep", "infinity"]
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 128Mi
+                    limits
+                      cpu: 1
+                      memory: 128Mi
+
                 - name: rust
                   image: rust:1.58-alpine3.15
                   command: ["sleep", "infinity"]
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 128Mi
+                    limits
+                      cpu: 1
+                      memory: 128Mi
+
             '''
         }
     }
@@ -59,14 +75,14 @@ pipeline {
         // Oh no, we can't perform regular Docker Builds on Kubernetes
         /*
         stage('Build Image') {
-            environment {
+            environment {lajj
                 DOCKER_BUILDKIT = "1"
             }
             steps {
                 dir(PROJECT_DIR) {
                     sh 'docker build -t super-report-printer:v0.1.0 .'
                 }
-            }
+     rust
         }
          */
     }
