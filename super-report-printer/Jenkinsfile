@@ -31,8 +31,8 @@ pipeline {
         stage('Generate Report') {
             steps {
                 dir(PROJECT_DIR) {
-                  container('python') {
-                      sh './report_generator.py'
+                    container('python') {
+                        sh './report_generator.py'
                     }
                 }
             }
