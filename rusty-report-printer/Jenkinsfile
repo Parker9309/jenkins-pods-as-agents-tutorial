@@ -12,26 +12,26 @@ pipeline {
             yaml '''
             spec:
               containers:
-            - name: rust
-              image: rustlang/rust:nightly-alpine
-              command: ["sleep", "infinity"]
-              resources:
-                requests:
-                  cpu: 100m
-                  memory: 220mi
-                limits:
-                  cpu: 1
-                  memory: 220mi
-            - name: kaniko
-              image: gcr.io/kaniko-project/executor:v1.8.1-debug
-              command: ["sleep", "infinity"]
-              resources:
-                requests:
-                  cpu: 100m
-                memory: 256Mi
-                limits:
-                  cpu: 2
-                  memory: 16i
+                - name: rust
+                  image: rustlang/rust:nightly-alpine
+                  command: ["sleep", "infinity"]
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 220mi
+                    limits:
+                      cpu: 1
+                      memory: 220mi
+                - name: kaniko
+                  image: gcr.io/kaniko-project/executor:v1.8.1-debug
+                  command: ["sleep", "infinity"]
+                  resources:
+                    requests:
+                      cpu: 100m
+                    memory: 256Mi
+                    limits:
+                      cpu: 2
+                      memory: 16i
             '''
         }
     }
