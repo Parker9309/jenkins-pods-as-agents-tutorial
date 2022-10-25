@@ -16,12 +16,12 @@ pipeline {
               image: rustlang/rust:nightly-alpine
               command: ["sleep", "infinity"]
               resources:
-                  requests:
-                    cpu: 100m
-                    memory: 220mi
-                  limits:
-                    cpu: 1
-                    memory: 220mi
+                requests:
+                  cpu: 100m
+                  memory: 220mi
+                limits:
+                  cpu: 1
+                  memory: 220mi
             '''
         }
     }
