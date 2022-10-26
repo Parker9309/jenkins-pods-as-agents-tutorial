@@ -13,31 +13,27 @@ pipeline {
             spec:
               containers:
                 - name: rust
-                  image: rustlang/rust:nightly-alpine
+                  image: rust:1.61-alpine3.15
                   command: ["sleep", "infinity"]
                   resources:
                     requests:
-                      cpu: 100m
-                      memory: 220mi
+                      cpu: 200m
+                      memory: 256Mi
                     limits:
-                      cpu: 1
-                      memory: 220mi
+                      cpu: 2
+                      memory: 256Mi
                 - name: kaniko
                   image: gcr.io/kaniko-project/executor:v1.8.1-debug
                   command: ["sleep", "infinity"]
                   resources:
                     requests:
                       cpu: 100m
-                      memory: 256Mi
+                      memory: 512Mi
                     limits:
                       cpu: 2
                       memory: 1Gi
             '''
         }
-    }
-
-    environment {
-        CARGO_UNSTABLE_SPARSE_REGISTRY = 'true'
     }
 
     options {
@@ -51,20 +47,22 @@ pipeline {
             steps {
                 dir(PROJECT_DIR) {
                     container('node18') {
-                        sh './report_generator.js'
+                    sh './report_generator.js'
                     }
                 }
             }
         }
 
-       stage('Install dependencies') {
-           steps {
-               dir(PROJECT_DIR) {
-                   // if we are on alpine, we need to install musl-dev
-                   sh 'apk add --no-cache musl-dev=1.2.2-r7'
-               }
-           }
-       }
+        stage('Install dependencies') {
+            steps {
+                dir(PROJECT_DIR) {
+                    container('rust') {
+                    //if we are on alpine, we need to install musl-dev
+                    sh 'apk add --no-cache musl-dev=1.2.2-r7'
+                    }
+                }
+            }
+        }
 
         stage('Build') {
             steps {
@@ -74,18 +72,23 @@ pipeline {
             }
         }
 
+        // Oh no, we can't perform regular Docker Builds on Kubernetes
+
         stage('Build Image') {
+            environment {
+                DOCKER_BUILDKIT = "1"
+            }
             steps {
                 dir(PROJECT_DIR) {
-                    container('kaniko') {
-                        sh '''/kaniko/executor --context=. \\
-                          --dockerfile=./Dockerfile \\
-                          --destination=super-report-printer:v0.1.0 \\
-                          --no-push \\
-                          --use-new-run \\
-                          --snapshotMode=redo 
-                        '''
-                    }
+                container('kaniko') {
+                    sh '''/kaniko/executor --context=. \\
+                      --dockerfile=./Dockerfile \\
+                      --destination=super-report-printer:v0.1.0 \\
+                      --no-push \\
+                      --use-new-run \\
+                      --snapshotMode=redo \\
+                    '''
+                    }    
                 }
             }
         }
